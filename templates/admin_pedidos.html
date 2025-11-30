@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Admin | Gestión de Pedidos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Gestión de Pedidos</h2>
+        <p class="text-muted">Administra, confirma o rechaza las reservas entrantes</p>
+    </div>
+  </div>
+
+<div class="card table-card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Fecha Evento</th>
+            <th>Paquete</th>
+            <th class="text-center">Invitados</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th class="text-center" style="width: 160px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pedidos %}
+          <tr>
+            <td>
+                <div class="user-combo">
+                    <div class="avatar-xs">
+                        {{ p.nombre_usuario[0] if p.nombre_usuario else 'U' }}
+                    </div>
+                    <div class="user-text">
+                        <span class="fw-bold d-block">{{ p.nombre_usuario or 'Desconocido' }}</span>
+                        </div>
+                </div>
+            </td>
+
+            <td>
+                <div class="date-badge">
+                    <i class="fa-regular fa-calendar"></i>
+                    {{ p.fecha_evento }}
+                </div>
+            </td>
+
+            <td>{{ p.nombre_paquete or '-' }}</td>
+            
+            <td class="text-center">
+                <span class="badge-pill">{{ p.cantidad_invitados }}</span>
+            </td>
+            
+            <td class="price-cell">S/. {{ '%.2f'|format(p.precio_total) }}</td>
+            
+              <td>
+              <span class="status-badge status-{{ (p.estado or 'pendiente')|replace(' ', '-')|lower }}">
+                {{ p.estado }}
+              </span>
+            </td>
+
+            <td class="text-center">
+              <div class="action-buttons">
+                <a class="btn-icon btn-icon-view" href="{{ url_for('view_pedido', id_pedido=p.id_pedido) }}" title="Ver detalle completo">
+                    <i class="fa-solid fa-eye"></i>
+                </a>
+
+                <a class="btn-icon" href="{{ url_for('admin_invoice', id_pedido=p.id_pedido) }}" title="Ver factura" target="_blank">
+                  <i class="fa-solid fa-file-invoice"></i>
+                </a>
+
+                {% if p.estado == 'Pendiente' %}
+                  <form method="post" action="{{ url_for('admin_confirm_pedido', id_pedido=p.id_pedido) }}" onsubmit="return confirm('¿Confirmar este pedido?');">
+                    <button type="submit" class="btn-icon btn-icon-success" title="Aprobar Pedido">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                  </form>
+
+                  <form method="post" action="{{ url_for('admin_reject_pedido', id_pedido=p.id_pedido) }}" onsubmit="return confirm('¿Rechazar este pedido? Se marcará como Cancelado.');">
+                    <button type="submit" class="btn-icon btn-icon-danger" title="Rechazar Pedido">
+                        <i class="fa-solid fa-ban"></i>
+                    </button>
+                  </form>
+                {% endif %}
+
+                {# Si el pedido está listo para entrega, permitir que el organizador lo marque como Completado (notificar al cliente) #}
+                {% if p.estado == 'Listo para entrega' %}
+                  <form method="post" action="{{ url_for('admin_complete_pedido', id_pedido=p.id_pedido) }}" onsubmit="return confirm('Marcar pedido como Completado y notificar al cliente?');">
+                    <button type="submit" class="btn-icon btn-icon-success" title="Marcar Completado">
+                      <i class="fa-solid fa-bell"></i>
+                    </button>
+                  </form>
+                {% endif %}
+
+                {# Abrir cliente de correo local con mailto: (evita configurar SMTP en el servidor) #}
+                {% if p.email %}
+                  <a class="btn-icon btn-icon-info" title="Notificar al cliente" href="mailto:{{ p.email }}?subject=Factura%20Pedido%20%23{{ p.id_pedido }}&body=Hola%20{{ (p.nombre_usuario or 'cliente')|replace(' ', '%20') }}%0A%0AAdjunto%20la%20factura%20del%20pedido.%20Puedes%20verla%20aquí:%20{{ url_for('admin_invoice', id_pedido=p.id_pedido, _external=True) }}">
+                    <i class="fa-solid fa-envelope"></i>
+                  </a>
+                {% else %}
+                  <button type="button" class="btn-icon btn-icon-info" title="No hay correo del cliente" disabled>
+                    <i class="fa-solid fa-envelope"></i>
+                  </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

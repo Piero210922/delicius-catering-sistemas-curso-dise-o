@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Registro — Catering</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+  </head>
+  <body>
+    <main class="login-split">
+      <aside class="left">
+        <div class="card" id="auth-card">
+          <h1>Crear cuenta</h1>
+          <p class="muted">Completa el formulario para crear tu cuenta</p>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <div class="flash-list">
+                {% for category, msg in messages %}
+                  <div class="flash {{ category }}">{{ msg }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <form method="post" class="auth-form" novalidate>
+            <label class="field">
+              <span>Nombre de usuario</span>
+              <input type="text" name="nombre_usuario" required placeholder="usuario">
+            </label>
+
+            <label class="field">
+              <span>Contraseña</span>
+              <input type="password" name="contraseña" required placeholder="Contraseña">
+            </label>
+
+            <label class="field">
+              <span>Nombre completo</span>
+              <input type="text" name="nombre_completo" required placeholder="Nombre completo">
+            </label>
+
+            <label class="field">
+              <span>Email</span>
+              <input type="email" name="email" required placeholder="correo@ejemplo.com">
+            </label>
+
+            <button type="submit" class="btn btn-primary full">REGISTRARME</button>
+
+            <p class="signup">¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Inicia sesión</a></p>
+          </form>
+        </div>
+
+      </aside>
+
+      <aside class="right" aria-hidden="true">
+        <div class="hero">
+          <img id="hero-graphic" src="{{ url_for('static', filename='hero.png') }}" alt="Imagen decorativa" class="hero-graphic"/>
+        </div>
+      </aside>
+    </main>
+    <script src="{{ url_for('static', filename='login.js') }}"></script>
+  </body>
+</html>

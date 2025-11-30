@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Admin | Usuarios{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Gestión de Usuarios</h2>
+        <p class="text-muted">Crear, editar y eliminar usuarios del sistema</p>
+    </div>
+    <div>
+        <a href="{{ url_for('admin_bp.nuevo_usuario') }}" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Nuevo Usuario</a>
+    </div>
+</div>
+
+<div class="card table-card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Usuario</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th class="text-center" style="width: 160px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in usuarios %}
+          <tr>
+            <td>{{ u.id_usuario }}</td>
+            <td>{{ u.nombre_usuario }}</td>
+            <td>{{ u.nombre_completo }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.rol }}</td>
+            <td class="text-center">
+              <div class="action-buttons">
+                <a class="btn-icon btn-icon-view" href="{{ url_for('admin_bp.editar_usuario', id_usuario=u.id_usuario) }}" title="Editar usuario">
+                  <i class="fa-solid fa-pen"></i>
+                </a>
+
+                <form method="post" action="{{ url_for('admin_bp.borrar_usuario', id_usuario=u.id_usuario) }}" onsubmit="return confirm('¿Eliminar este usuario?');">
+                  <button type="submit" class="btn-icon btn-icon-danger" title="Eliminar usuario">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

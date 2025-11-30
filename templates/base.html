@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Delicious Catering{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Ajustes para el panel de administración */
+        body { background-color: #f9fafb; min-height: 100vh; display: flex; flex-direction: column; }
+        main { flex: 1; margin-top: 80px; /* Espacio para navbar fija */ }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar scrolled">
+        <div class="container nav-container">
+            <a href="{% if current_user %}{% if current_user.rol == 'admin' %}{{ url_for('admin_pedidos') }}{% elif current_user.rol == 'cocinero' %}{{ url_for('cocinero_pedidos') }}{% else %}{{ url_for('view_pedidos') }}{% endif %}{% else %}{{ url_for('index') }}{% endif %}" class="logo text-decoration-none">
+                <i class="fa-solid fa-hat-chef"></i>
+                <span class="gradient-text">Delicious Catering</span>
+            </a>
+
+            <div class="nav-buttons">
+                {% if current_user %}
+                    <div class="user-menu">
+                        <span class="user-name">Hola, {{ current_user.nombre_completo.split(' ')[0] }}</span>
+                        
+                        <div class="action-group">
+                            {% if current_user.rol == 'admin' %}
+                                <div class="action-group">
+                                    <a href="{{ url_for('admin_pedidos') }}" class="btn btn-sm btn-ghost" title="Panel Admin"><i class="fa-solid fa-shield-halved"></i></a>
+                                    <a href="{{ url_for('admin_bp.usuarios') }}" class="btn btn-sm btn-ghost" title="Gestionar Usuarios"><i class="fa-solid fa-users-cog"></i></a>
+                                </div>
+                            {% elif current_user.rol == 'cocinero' %}
+                                <div class="action-group">
+                                    <a href="{{ url_for('cocinero_pedidos') }}" class="btn btn-sm btn-ghost" title="Pedidos Cocina"><i class="fa-solid fa-utensils"></i></a>
+                                </div>
+                            {% else %}
+                                <a href="{{ url_for('view_pedidos') }}" class="btn btn-sm btn-ghost" title="Mis Pedidos">
+                                    <i class="fa-solid fa-receipt"></i>
+                                </a>
+                                <a href="{{ url_for('nuevo_pedido') }}" class="btn btn-sm btn-primary">
+                                    <i class="fa-solid fa-plus"></i> Nuevo
+                                </a>
+                            {% endif %}
+
+                            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger" title="Salir">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-ghost">Iniciar sesión</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">Registrarse</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container fade-in">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-container">
+                        {% for category, msg in messages %}
+                            <div class="flash-message {{ category }}">
+                                <i class="fa-solid fa-info-circle"></i> {{ msg }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <footer class="footer-simple">
+        <p>© 2025 Delicious Catering - Panel de Gestión</p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Mis Pedidos | Delicious{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Mis Pedidos</h2>
+        <p class="text-muted">Historial de tus reservas y eventos</p>
+    </div>
+    <a href="{{ url_for('nuevo_pedido') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Crear Nuevo
+    </a>
+</div>
+
+<div class="card table-card">
+    <div class="card-body p-0">
+        {% set has_any = false %}
+        <div class="table-responsive">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Fecha Evento</th>
+                        <th>Paquete</th>
+                        <th>Invitados</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th class="text-center" style="width: 120px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pedidos %}
+                        {% set pid = p.get('id_pedido') or p.get('pedido_id') %}
+                        {# Filtro: Solo mostrar si es admin o si el pedido pertenece al usuario actual #}
+                        {% if current_user and (current_user.rol == 'admin' or p.get('id_usuario') == current_user.id_usuario) %}
+                            {% set has_any = true %}
+                            <tr>
+                                <td>
+                                    <div class="date-badge">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        {{ p.get('fecha_evento') or p.get('fecha') or '-' }}
+                                    </div>
+                                </td>
+                                <td class="fw-bold">{{ p.get('nombre_paquete') or p.get('paquete') or '-' }}</td>
+                                <td>
+                                    <i class="fa-solid fa-users text-muted me-1"></i> 
+                                    {{ p.get('cantidad_invitados') or p.get('invitados') or '-' }}
+                                </td>
+                                <td class="price-cell">S/. {{ '%.2f'|format(p.get('precio_total')|float) if p.get('precio_total') is not none else '-' }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ (p.get('estado') or 'pendiente')|replace(' ', '-')|lower }}">
+                                        {{ p.get('estado') or 'Pendiente' }}
+                                    </span>
+                                </td>
+                                
+                                <!-- Columna de Acciones Refinada -->
+                                <td class="text-right">
+                                    <div class="action-buttons">
+                                        {% if pid %}
+                                            <a class="btn-icon btn-icon-view" href="{{ url_for('view_pedido', id_pedido=pid) }}" title="Ver Detalle">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </a>
+                                            
+                                            {# Botón de Cancelar: mostrar solo si estado == 'Pendiente' y el pedido pertenece al usuario (no para admins aquí) #}
+                                            {% if (p.get('estado') or '') == 'Pendiente' and current_user.rol != 'admin' and p.get('id_usuario') == current_user.id_usuario %}
+                                                <form method="post" action="{{ url_for('cancel_pedido', id_pedido=pid) }}" onsubmit="return confirm('¿Estás seguro de cancelar este pedido? Esta acción no se puede deshacer.');">
+                                                    <button type="submit" class="btn-icon btn-icon-danger" title="Cancelar Pedido">
+                                                        <i class="fa-solid fa-trash-can"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

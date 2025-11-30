@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Pedido{% endblock %}
+
+{% block content %}
+<div class="wizard-container">
+    
+    <div class="section-header text-center mb-5">
+        <h2>Reserva tu Evento</h2>
+        <p class="text-muted">Personaliza cada detalle de tu experiencia culinaria</p>
+    </div>
+
+    <div class="wizard-progress">
+        <div class="progress-step active" data-step="1">
+            <div class="step-icon"><i class="fa-solid fa-utensils"></i></div>
+            <span>Paquete</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" data-step="2">
+            <div class="step-icon"><i class="fa-solid fa-wheat-awn-circle-exclamation"></i></div>
+            <span>Dietas</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" data-step="3">
+            <div class="step-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <span>Extras</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" data-step="4">
+            <div class="step-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+            <span>Resumen</span>
+        </div>
+    </div>
+
+    <form id="orderForm" method="post" action="{{ url_for('nuevo_pedido') }}" class="wizard-form card">
+        <div class="card-body p-4 p-md-5">
+            <input type="hidden" name="id_usuario" value="{{ current_user.id_usuario if current_user else '' }}">
+
+            <div class="step-content active" data-step="1">
+                <h3 class="step-title">1. Elige tu experiencia</h3>
+                <div id="step1Error" class="text-danger mt-2" style="display:none">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Debes seleccionar un paquete y una fecha.
+                </div>
+                <div class="packages-grid">
+                    {% for p in paquetes %}
+                    <label class="package-select-card">
+                        <input type="radio" name="id_paquete" value="{{ p.id_paquete }}" data-price="{{ p.precio_base }}" data-name="{{ p.nombre_paquete }}" {% if loop.first %}checked{% endif %}>
+                        <div class="card-inner">
+                            <div class="pkg-icon">
+                                {% if 'Premium' in p.nombre_paquete %}👑
+                                {% elif 'Estándar' in p.nombre_paquete %}🥂
+                                {% else %}🍽️{% endif %}
+                            </div>
+                            <h4>{{ p.nombre_paquete }}</h4>
+                            <div class="pkg-price">S/. {{ '%.2f'|format(p.precio_base) }} <small>/persona</small></div>
+                            <div class="check-mark"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="form-grid mt-4">
+                    <div class="form-group">
+                        <label>Fecha del Evento</label>
+                        <input type="date" name="fecha_evento" class="form-control modern-input" required {% if min_date %}min="{{ min_date }}"{% endif %}>
+                        <small class="text-muted">Debe reservarse con al menos {{ min_days }} días de anticipación.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Número de Invitados</label>
+                        <div class="counter-control">
+                            <button type="button" data-action="decrease"><i class="fa-solid fa-minus"></i></button>
+                            <input type="number" id="invitados" name="cantidad_invitados" value="50" min="5" class="text-center">
+                            <button type="button" data-action="increase"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <small>Subtotal paquete: <strong id="step1Subtotal">S/. 0.00</strong></small>
+                </div>
+                
+                <div class="step-actions">
+                    <div></div> <button type="button" class="btn btn-primary" id="toStep2">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <div class="step-content" data-step="2">
+                <h3 class="step-title">2. Requerimientos Dietéticos</h3>
+                <div class="alert alert-info">
+                    <i class="fa-solid fa-circle-info"></i> Indique cuántos invitados requieren menús especiales.
+                </div>
+
+                <div class="special-menus-list">
+                    {% for tipo in ['Normal', 'Vegano', 'Celíaco', 'Alérgico'] %}
+                    <div class="menu-item-row">
+                        <div class="menu-info">
+                            <span class="menu-name">{{ tipo }}</span>
+                            <small class="text-muted">{% if tipo=='Normal' %}Menú estándar{% else %}Menú alternativo especializado{% endif %}</small>
+                        </div>
+                        <div class="counter-control small">
+                            <button type="button" data-action="decrease" class="m-btn"><i class="fa-solid fa-minus"></i></button>
+                            <input type="number" name="menu_{{ tipo }}" value="0" min="0">
+                            <button type="button" data-action="increase" class="m-btn"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div id="menuError" class="text-danger mt-3" style="display:none">
+                    <i class="fa-solid fa-triangle-exclamation"></i> La suma de menús especiales debe ser exactamente igual al número de invitados.
+                </div>
+
+                <div class="step-actions">
+                    <button type="button" class="btn btn-ghost" id="backTo1">Atrás</button>
+                    <button type="button" class="btn btn-primary" id="toStep3">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <div class="step-content" data-step="3">
+                <h3 class="step-title">3. Complementa tu evento</h3>
+                <div class="addons-grid">
+                    {% for a in adicionales %}
+                    <label class="addon-checkbox-card">
+                        <input type="checkbox" name="adicionales" value="{{ a.id_adicional }}" data-price="{{ a.precio }}" data-fixed="{{ a.es_fijo }}">
+                        <div class="addon-content">
+                            <div class="addon-icon"><i class="fa-solid fa-plus"></i></div>
+                            <div class="addon-details">
+                                <h5>{{ a.nombre_adicional }}</h5>
+                                <span class="addon-price">S/. {{ '%.2f'|format(a.precio) }} <small>(Fijo)</small></span>
+                            </div>
+                            <div class="addon-check"><i class="fa-solid fa-check"></i></div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-3">
+                    <small>Subtotal adicionales: <strong id="addonsSubtotal">S/. 0.00</strong></small>
+                </div>
+
+                <div class="step-actions">
+                    <button type="button" class="btn btn-ghost" id="backTo2">Atrás</button>
+                    <button type="button" class="btn btn-primary" id="toStep4">Ver Resumen <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <div class="step-content" data-step="4">
+                <h3 class="step-title text-center">Resumen de Cotización</h3>
+                
+                <div class="invoice-box">
+                       <div id="finalError" style="display:none;color:#b91c1c;margin-top:8px">Hay errores en el formulario. Verifica los pasos anteriores.</div>
+                    <div class="invoice-header">
+                        <div class="inv-col">
+                            <span class="label">Paquete Seleccionado</span>
+                            <strong class="value highlight" id="finalPaquete">-</strong>
+                        </div>
+                        <div class="inv-col text-right">
+                            <span class="label">Total Invitados</span>
+                            <strong class="value" id="finalInvitados">0</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="invoice-body">
+                        <div class="line-item">
+                            <span>Costo base del paquete</span>
+                            <span id="finalPrecioBase">S/. 0.00</span>
+                        </div>
+                        <div id="finalAdicionalesList">
+                            </div>
+                        <div class="line-item diet-summary text-muted">
+                            <small id="finalMenusText"></small>
+                        </div>
+                    </div>
+
+                    <div class="invoice-total">
+                        <span>Total Estimado</span>
+                        <span class="total-amount">S/. <span id="finalTotal">0.00</span></span>
+                    </div>
+                </div>
+
+                <div class="step-actions">
+                    <button type="button" class="btn btn-ghost" id="backTo3">Atrás</button>
+                    <button type="submit" class="btn btn-primary btn-lg pulse-hover">Confirmar Reserva</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="{{ url_for('static', filename='order.js') }}"></script>
+{% endblock %}

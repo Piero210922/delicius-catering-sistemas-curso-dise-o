@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Admin | Usuario{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2 class="fw-bold">{% if usuario %}Editar Usuario{% else %}Nuevo Usuario{% endif %}</h2>
+        <p class="text-muted">Administra los accesos y roles del sistema</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('admin_bp.usuarios') }}" class="btn btn-ghost" title="Volver al listado"><i class="fa-solid fa-arrow-left"></i> Volver</a>
+    </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-4">
+    {% if usuario %}
+      <form method="post" action="{{ url_for('admin_bp.editar_usuario', id_usuario=usuario.id_usuario) }}">
+    {% else %}
+      <form method="post" action="{{ url_for('admin_bp.nuevo_usuario') }}">
+    {% endif %}
+
+      <div class="form-grid">
+        <div>
+          <label class="label">Nombre de usuario</label>
+          <input class="modern-input" name="nombre_usuario" value="{{ usuario.nombre_usuario if usuario else '' }}" {% if usuario %}readonly{% endif %} required>
+        </div>
+
+        <div>
+          <label class="label">Contraseña {% if usuario %}<span class="text-muted">(dejar en blanco para no cambiar)</span>{% endif %}</label>
+          <input class="modern-input" type="password" name="contraseña" {% if not usuario %}required{% endif %}>
+        </div>
+
+        <div>
+          <label class="label">Nombre completo</label>
+          <input class="modern-input" name="nombre_completo" value="{{ usuario.nombre_completo if usuario else '' }}" required>
+        </div>
+
+        <div>
+          <label class="label">Email</label>
+          <input class="modern-input" type="email" name="email" value="{{ usuario.email if usuario else '' }}" required>
+        </div>
+
+        <div>
+          <label class="label">Rol</label>
+          <select class="modern-input" name="rol">
+            <option value="cliente" {% if usuario and usuario.rol=='cliente' %}selected{% endif %}>Cliente</option>
+            <option value="admin" {% if usuario and usuario.rol=='admin' %}selected{% endif %}>Admin</option>
+            {# El rol 'proveedor' fue removido por decisión del producto #}
+            <option value="cocinero" {% if usuario and usuario.rol=='cocinero' %}selected{% endif %}>Cocinero</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="label">Fecha de registro</label>
+          <input class="modern-input" value="{{ usuario.fecha_registro if usuario else '-' }}" readonly>
+        </div>
+
+        <div>
+          &nbsp;
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:1rem;">
+        <a class="btn btn-ghost" href="{{ url_for('admin_bp.usuarios') }}">Cancelar</a>
+        <button class="btn btn-primary" type="submit">Guardar</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}

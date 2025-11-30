@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delicious Catering</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+</head>
+<body>
+
+    <nav id="navbar" class="navbar">
+        <div class="container nav-container">
+            <div class="logo">
+                <i class="fa-solid fa-hat-chef"></i>
+                <span class="gradient-text">Delicious Catering</span>
+            </div>
+            <div class="nav-buttons">
+                <a class="btn btn-ghost" href="{{ url_for('login') }}">Iniciar sesión</a>
+                <a class="btn btn-primary" href="{{ url_for('login') }}">Comenzar</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container hero-grid">
+            <div class="hero-content animate-fade-in">
+                <div class="badge">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Experiencias culinarias inolvidables
+                </div>
+                <h1>Deleita a tus invitados con <span class="gradient-text">catering memorable</span></h1>
+                <p>Ofrecemos paquetes personalizables para eventos, menús especiales y adicionales para que cada celebración sea única y perfecta.</p>
+                <div class="hero-actions">
+                    <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}">Comenzar ahora <i class="fa-solid fa-arrow-right"></i></a>
+                    <a class="btn btn-outline btn-lg" href="{{ url_for('login') }}">Iniciar sesión</a>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <strong>{{ count_paquetes|default(0) }}</strong>
+                        <span>Paquetes</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>{{ count_adicionales|default(0) }}</strong>
+                        <span>Adicionales</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>{{ count_pedidos|default(0) }}</strong>
+                        <span>Pedidos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-image animate-float">
+                <div class="floating-card">
+                    <div class="card-icon">🍽️</div>
+                    <ul class="card-features">
+                        <li><i class="fa-solid fa-check feature-check-orange"></i> Menús personalizados</li>
+                        <li><i class="fa-solid fa-check feature-check-amber"></i> Servicio profesional</li>
+                        <li><i class="fa-solid fa-check feature-check-orange"></i> Ingredientes premium</li>
+                    </ul>
+                </div>
+                <div class="blob"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Qué ofrecemos</h2>
+                <p>Todo lo que necesitas para un evento perfecto</p>
+            </div>
+            <div class="grid-3">
+                <a href="{{ url_for('login') }}" class="card-link">
+                <div class="feature-card">
+                    <div class="icon-box">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <h4>Paquetes escalables</h4>
+                    <p>Desde eventos íntimos hasta recepciones grandes, elige entre Básico, Estándar y Premium adaptados a tu necesidad.</p>
+                </div>
+                </a>
+                <a href="{{ url_for('login') }}" class="card-link">
+                <div class="feature-card">
+                    <div class="icon-box alt-gradient">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <h4>Adicionales flexibles</h4>
+                    <p>Añade estaciones de bebidas, postres gourmet o personal extra según la necesidad específica de tu evento.</p>
+                </div>
+                </a>
+                <a href="{{ url_for('login') }}" class="card-link">
+                <div class="feature-card">
+                    <div class="icon-box">
+                        <i class="fa-solid fa-bowl-food"></i>
+                    </div>
+                    <h4>Menús especiales</h4>
+                    <p>Opciones veganas, sin gluten y para alérgicos cuidadosamente preparadas por nuestro equipo especializado.</p>
+                </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section bg-light">
+        <div class="container">
+            <div class="section-header">
+                <h2>Paquetes destacados</h2>
+                <p>Elige el paquete perfecto para tu evento</p>
+            </div>
+            <div class="grid-3">
+                {% if destacados %}
+                                {% for p in destacados %}
+                                        {% set _name = (p.nombre_paquete or '')|lower %}
+                                        <div class="package-card">
+                                            <div class="package-emoji">
+                                                {% if 'prem' in _name %}
+                                                    👑
+                                                {% elif 'estandar' in _name or 'estándar' in _name or 'est' in _name %}
+                                                    🍽️
+                                                {% elif 'bas' in _name or 'bás' in _name %}
+                                                    🥗
+                                                {% else %}
+                                                    🍽️
+                                                {% endif %}
+                                            </div>
+                                            <h3>{{ p.nombre_paquete }}</h3>
+                                            <p class="desc">{{ p.descripcion or 'Descripción no disponible' }}</p>
+                                            <div class="price">S/.{{ '%.2f'|format(p.precio_base) }}</div>
+                                            <ul class="package-list">
+                                                <li><i class="fa-solid fa-check"></i> Paquete: {{ p.nombre_paquete }}</li>
+                                                <li><i class="fa-solid fa-check"></i> Precio base por invitado</li>
+                                            </ul>
+                                            <a class="btn btn-primary full-width" href="{{ url_for('login') }}">Seleccionar paquete</a>
+                                        </div>
+                                    {% endfor %}
+                {% else %}
+                  <p class="muted">No hay paquetes destacados disponibles.</p>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Adicionales disponibles</h2>
+                <p>Personaliza tu evento con extras especiales</p>
+            </div>
+            <div class="grid-4">
+                <a href="{{ url_for('login') }}" class="card-link">
+                <div class="addon-card">
+                    <div class="addon-icon"><i class="fa-solid fa-wine-glass"></i></div>
+                    <h4>Estación de Bebidas</h4>
+                    <p>Cocteles y bebidas premium</p>
+                </div>
+                </a>
+                <a href="{{ url_for('login') }}" class="card-link">
+                <div class="addon-card">
+                    <div class="addon-icon"><i class="fa-solid fa-cake-candles"></i></div>
+                    <h4>Mesa de Postres</h4>
+                    <p>Deliciosos dulces artesanales</p>
+                </div>
+                </a>
+                <a href="{{ url_for('login') }}" class="card-link">
+                <div class="addon-card">
+                    <div class="addon-icon"><i class="fa-solid fa-utensils"></i></div>
+                    <h4>Estación en Vivo</h4>
+                    <p>Chefs preparando en el momento</p>
+                </div>
+                </a>
+                <a href="{{ url_for('login') }}" class="card-link">
+                <div class="addon-card">
+                    <div class="addon-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <h4>Decoración Extra</h4>
+                    <p>Ambientación temática completa</p>
+                </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="container text-center">
+            <i class="fa-regular fa-clock cta-icon"></i>
+            <h3>Listos para tu próximo evento</h3>
+            <p>Planifica con anticipación y personaliza cada detalle — cotiza y confirma en pocos pasos.</p>
+            <a class="btn btn-white btn-lg" href="{{ url_for('login') }}">Comenzar ahora <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container text-center">
+            <div class="footer-logo">
+                <i class="fa-solid fa-hat-chef"></i> Delicious Catering
+            </div>
+            <p>© 2024 Delicious Catering. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

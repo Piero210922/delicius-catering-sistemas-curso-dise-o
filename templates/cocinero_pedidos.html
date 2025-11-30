@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Cocinero | Pedidos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Pedidos para Cocina</h2>
+        <p class="text-muted">Aquí verás pedidos confirmados y su avance</p>
+    </div>
+</div>
+
+<div class="card table-card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Fecha Evento</th>
+            <th>Paquete</th>
+            <th class="text-center">Invitados</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th class="text-center" style="width: 220px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pedidos %}
+          <tr>
+            <td>
+                <div class="user-combo">
+                    <div class="avatar-xs">
+                        {{ p.nombre_usuario[0] if p.nombre_usuario else 'U' }}
+                    </div>
+                    <div class="user-text">
+                        <span class="fw-bold d-block">{{ p.nombre_usuario or 'Desconocido' }}</span>
+                        <small class="text-muted">{{ p.email }}</small>
+                    </div>
+                </div>
+            </td>
+
+            <td>
+                <div class="date-badge">
+                    <i class="fa-regular fa-calendar"></i>
+                    {{ p.fecha_evento }}
+                </div>
+            </td>
+
+            <td>{{ p.nombre_paquete or '-' }}</td>
+            
+            <td class="text-center">
+                <span class="badge-pill">{{ p.cantidad_invitados }}</span>
+            </td>
+            
+            <td class="price-cell">S/. {{ '%.2f'|format(p.precio_total) }}</td>
+            
+            <td>
+              <span class="status-badge status-{{ (p.estado or 'pendiente')|replace(' ', '-')|lower }}">
+                {{ p.estado }}
+              </span>
+            </td>
+
+            <td class="text-center">
+              <div class="action-buttons">
+                <a class="btn-icon btn-icon-view" href="{{ url_for('view_pedido', id_pedido=p.id_pedido) }}" title="Ver detalle">
+                    <i class="fa-solid fa-eye"></i>
+                </a>
+
+                {% if p.estado == 'Confirmado' %}
+                  <form method="post" action="{{ url_for('cocinero_marcar_preparacion', id_pedido=p.id_pedido) }}">
+                    <button type="submit" class="btn-icon btn-icon-info" title="Marcar En preparación">
+                      <i class="fa-solid fa-fire"></i>
+                    </button>
+                  </form>
+                {% elif p.estado == 'En preparación' %}
+                  <form method="post" action="{{ url_for('cocinero_marcar_listo', id_pedido=p.id_pedido) }}">
+                    <button type="submit" class="btn-icon btn-icon-success" title="Marcar Listo para entrega">
+                      <i class="fa-solid fa-check"></i>
+                    </button>
+                  </form>
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

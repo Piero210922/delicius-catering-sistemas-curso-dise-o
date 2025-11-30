@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Factura #{{ pedido.id_pedido }} - Delicious Catering</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #ea580c;
+            --text-dark: #111827;
+            --text-gray: #6b7280;
+            --border: #e5e7eb;
+            --bg-gray: #f9fafb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 40px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Contenedor tipo Hoja A4 */
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 48px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        /* --- Header --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 48px;
+        }
+
+        .logo-section { display: flex; align-items: center; gap: 12px; }
+        .logo-icon {
+            width: 48px; height: 48px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+        }
+        .company-name { font-weight: 700; font-size: 1.25rem; color: var(--text-dark); margin: 0; line-height: 1.2; }
+        .company-details { color: var(--text-gray); font-size: 0.85rem; margin-top: 4px; }
+
+        .invoice-details { text-align: right; }
+        .invoice-title { font-size: 2rem; font-weight: 700; color: var(--text-dark); letter-spacing: -0.5px; margin: 0; line-height: 1; }
+        .invoice-meta { margin-top: 8px; color: var(--text-gray); font-size: 0.95rem; }
+        .invoice-meta strong { color: var(--text-dark); font-weight: 600; }
+
+        /* --- Info Grid (Cliente / Evento) --- */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 24px 0;
+        }
+
+        .info-col h4 { font-size: 0.75rem; text-transform: uppercase; color: var(--text-gray); letter-spacing: 1px; margin: 0 0 12px 0; font-weight: 600; }
+        .info-col p { margin: 0 0 4px 0; font-size: 0.95rem; }
+        .highlight { font-weight: 600; color: var(--text-dark); }
+
+        /* --- Tabla de Items --- */
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+        .items-table th { text-align: left; padding: 12px 0; border-bottom: 2px solid var(--text-dark); color: var(--text-dark); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+        .items-table td { padding: 16px 0; border-bottom: 1px solid var(--border); color: var(--text-gray); }
+        .items-table .item-desc { color: var(--text-dark); font-weight: 500; }
+        .text-right { text-align: right; }
+
+        /* --- Totales --- */
+        .summary-section {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .totals-box { width: 300px; }
+        .total-row { display: flex; justify-content: space-between; padding: 8px 0; color: var(--text-gray); }
+        .total-row.final {
+            border-top: 2px solid var(--text-dark);
+            margin-top: 8px;
+            padding-top: 12px;
+            color: var(--text-dark);
+            font-weight: 700;
+            font-size: 1.25rem;
+            align-items: center;
+        }
+        .total-row.final span:last-child { color: var(--primary); }
+
+        /* --- Footer (Bancos y Términos) --- */
+        .footer {
+            margin-top: 60px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+        .bank-info h5 { margin: 0 0 8px 0; color: var(--text-dark); font-size: 0.9rem; }
+        .bank-info p { margin: 0 0 4px 0; }
+
+        /* --- Botón flotante --- */
+        .actions {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            background: var(--text-dark);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn.primary { background: var(--primary); }
+
+        /* --- Ajustes de Impresión --- */
+        @media print {
+            body { background: white; padding: 0; }
+            .invoice-container { box-shadow: none; max-width: 100%; padding: 0; margin: 0; }
+            .actions { display: none; }
+            /* Asegurar colores de fondo e impresión nítida */
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="invoice-container">
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo-icon"><i class="fa-solid fa-hat-chef"></i>DC</div>
+                <div>
+                    <h1 class="company-name">Delicious Catering</h1>
+                    <div class="company-details">
+                        RUC: 20555555551<br>
+                        Av. Gastronomía 123, Lima<br>
+                        contacto@delicious.com
+                    </div>
+                </div>
+            </div>
+            <div class="invoice-details">
+                <h2 class="invoice-title">FACTURA</h2>
+                <div class="invoice-meta">
+                    N° Documento: <strong>E001-{{ "%06d"|format(pedido.id_pedido) }}</strong><br>
+                    Fecha de Emisión: <strong>{{ pedido.fecha_creacion if pedido.fecha_creacion else '29/11/2025' }}</strong>
+                </div>
+            </div>
+        </header>
+
+        <section class="info-grid">
+            <div class="info-col">
+                <h4>Facturado A:</h4>
+                <p class="highlight">{{ usuario.nombre_completo if usuario else 'Cliente General' }}</p>
+                <p>{{ usuario.email if usuario else '' }}</p>
+                <p>DNI/RUC: -</p> <p>Dirección: -</p>
+            </div>
+            <div class="info-col">
+                <h4>Detalles del Evento:</h4>
+                <p><strong>Fecha Evento:</strong> {{ pedido.fecha_evento }}</p>
+                <p><strong>Invitados:</strong> {{ pedido.cantidad_invitados }} personas</p>
+                <p><strong>Paquete:</strong> {{ paquete.nombre_paquete }}</p>
+            </div>
+        </section>
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 50%">Descripción del Servicio</th>
+                    <th class="text-right">Cant.</th>
+                    <th class="text-right">Precio Unit.</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="item-desc">Servicio de Catering - {{ paquete.nombre_paquete }}</div>
+                        <small>Incluye menú de tiempos y servicio completo según contrato.</small>
+                    </td>
+                    <td class="text-right">{{ pedido.cantidad_invitados }}</td>
+                    <td class="text-right">S/. {{ '%.2f'|format(paquete.precio_base|float) }}</td>
+                    <td class="text-right">S/. {{ '%.2f'|format((paquete.precio_base|float * pedido.cantidad_invitados)|float) }}</td>
+                </tr>
+
+                {% if adicionales %}
+                    {% for a in adicionales %}
+                    <tr>
+                        <td>
+                            <div class="item-desc">Adicional: {{ a.nombre }}</div>
+                        </td>
+                        <td class="text-right">1</td>
+                        <td class="text-right">S/. {{ '%.2f'|format(a.precio) }}</td>
+                        <td class="text-right">S/. {{ '%.2f'|format(a.precio) }}</td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+
+        <div class="summary-section">
+            <div class="totals-box">
+                <div class="total-row">
+                    <span>Op. Gravada</span>
+                    <span>S/. {{ '%.2f'|format((pedido.precio_total|float) * 0.82) }}</span>
+                </div>
+                <div class="total-row">
+                    <span>IGV (18%)</span>
+                    <span>S/. {{ '%.2f'|format((pedido.precio_total|float) * 0.18) }}</span>
+                </div>
+                <div class="total-row final">
+                    <span>Total a Pagar</span>
+                    <span>S/. {{ '%.2f'|format(pedido.precio_total|float) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="bank-info">
+                <h5>Información de Pago</h5>
+                <p><strong>BCP Soles:</strong> 193-00000000-0-00 (CCI: 002-193...)</p>
+                <p><strong>BBVA Soles:</strong> 0011-00000000-00 (CCI: 011-000...)</p>
+                <p style="margin-top:8px; font-size: 0.8rem;">Por favor envíe el comprobante de pago a pagos@delicious.com indicando el N° de pedido.</p>
+            </div>
+            <div class="terms">
+                <h5>Términos y Condiciones</h5>
+                <p>Esta factura electrónica tiene validez legal. El servicio está sujeto a las políticas de cancelación firmadas en el contrato. Mora diaria de 0.5% pasado el vencimiento.</p>
+            </div>
+        </footer>
+    </div>
+
+    <div class="actions">
+        <a href="javascript:window.print()" class="btn primary">Imprimir / PDF</a>
+        <a href="javascript:window.close()" class="btn">Cerrar</a>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</body>
+</html>

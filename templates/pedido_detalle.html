@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Detalle del Pedido{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{% if current_user and current_user.rol == 'admin' %}{{ url_for('admin_pedidos') }}{% elif current_user and current_user.rol == 'cocinero' %}{{ url_for('cocinero_pedidos') }}{% else %}{{ url_for('view_pedidos') }}{% endif %}" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i> Volver a pedidos
+    </a>
+</div>
+
+<div class="detail-grid">
+    <!-- COLUMNA IZQUIERDA: Información del Evento -->
+    <div class="main-detail-card card">
+        <div class="card-header-banner">
+            <div class="header-content">
+                <span class="overline">Resumen del Evento</span>
+                <h1>{{ paquete.nombre_paquete if paquete else 'Paquete Personalizado' }}</h1>
+                <div class="meta-tags">
+                    <span class="meta-tag"><i class="fa-regular fa-calendar"></i> {{ pedido.fecha_evento }}</span>
+                    <span class="meta-tag"><i class="fa-solid fa-users"></i> {{ pedido.cantidad_invitados }} Invitados</span>
+                </div>
+            </div>
+            <div class="header-status">
+                <span class="status-badge status-{{ (pedido.estado or 'pendiente')|replace(' ', '-')|lower }} lg">
+                    {{ pedido.estado }}
+                </span>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            <div class="detail-section">
+                <h4><i class="fa-solid fa-utensils"></i> Menús Especiales</h4>
+                {% if menus %}
+                    <div class="menus-grid">
+                        {% for m in menus %}
+                        <div class="menu-item-box">
+                            <span class="count">{{ m.cantidad }}</span>
+                            <span class="type">{{ m.tipo }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted-italic">No se han solicitado menús especiales (vegano, celíaco, etc).</p>
+                {% endif %}
+            </div>
+
+            <hr class="divider">
+
+            <div class="detail-section">
+                <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Servicios Adicionales</h4>
+                {% if adicionales %}
+                    <ul class="addons-list">
+                        {% for a in adicionales %}
+                        <li>
+                            <div class="addon-info">
+                                <i class="fa-solid fa-check text-primary"></i>
+                                <span>{{ a.nombre }}</span>
+                            </div>
+                            <span class="addon-price">S/. {{ '%.2f'|format(a.precio) }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted-italic">No se han seleccionado servicios adicionales.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: Cliente y Resumen Financiero -->
+    <aside class="sidebar-detail">
+        <!-- Tarjeta de Cliente -->
+        <div class="card mb-4">
+            <div class="card-body p-4">
+                <h5 class="sidebar-title">Información del Cliente</h5>
+                <div class="user-info-block">
+                    <div class="avatar-circle">
+                        {{ usuario.nombre_completo[0] if usuario else 'U' }}
+                    </div>
+                    <div>
+                        <div class="user-name">{{ usuario.nombre_completo if usuario else 'Usuario Desconocido' }}</div>
+                        <div class="user-email">{{ usuario.email if usuario else '-' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta Financiera y Acciones -->
+        <div class="card total-card">
+            <div class="card-body p-4">
+                <h5 class="sidebar-title">Total Estimado</h5>
+                <div class="total-display">
+                    S/. {{ '%.2f'|format(pedido.precio_total) }}
+                </div>
+                <p class="text-sm text-muted mb-4">Incluye impuestos y servicios base.</p>
+
+                <div class="actions-stack">
+                    {# Solo permitir cancelar si el pedido está en Pendiente; una vez confirmado o más allá no se puede cancelar #}
+                    {% if pedido.estado == 'Pendiente' and (current_user.rol == 'admin' or current_user.id_usuario == pedido.id_usuario) %}
+                            <form method="post" action="{{ url_for('cancel_pedido', id_pedido=pedido.id_pedido) }}" onsubmit="return confirm('¿Estás seguro de cancelar este pedido? Esta acción no se puede deshacer.');">
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    <i class="fa-solid fa-ban"></i> Cancelar Pedido
+                                </button>
+                            </form>
+                        {% endif %}
+                    
+                    {% if current_user.rol == 'admin' %}
+                         <!-- Botón extra solo para admins, por ejemplo imprimir -->
+                        <button onclick="window.print()" class="btn btn-ghost w-100 mt-2">
+                            <i class="fa-solid fa-print"></i> Imprimir Ficha
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+{% endblock %}
